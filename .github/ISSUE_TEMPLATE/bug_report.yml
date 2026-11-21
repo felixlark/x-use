@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a reproducible X Use defect
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove tokens, cookies, XChat keys, private account identifiers, and private paths from all evidence.
+  - type: input
+    id: version
+    attributes:
+      label: X Use version or commit
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node version, and xurl version
+    validations:
+      required: true
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Affected tool
+      options:
+        - x_post
+        - x_user
+        - x_user_posts
+        - x_search
+        - x_thread
+        - x_media
+        - x_status
+        - installation or discovery
+        - documentation
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the structured error code and sanitized response shape.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+

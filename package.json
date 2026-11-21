@@ -1,0 +1,43 @@
+{
+  "name": "x-use",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only X Use MCP backed by the official X API and local xurl authentication",
+  "license": "MIT",
+  "author": "felixlark",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixlark/x-use.git"
+  },
+  "homepage": "https://github.com/felixlark/x-use#readme",
+  "bugs": {
+    "url": "https://github.com/felixlark/x-use/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "x-api",
+    "twitter-api",
+    "xurl",
+    "ai-agents",
+    "nodejs"
+  ],
+  "type": "module",
+  "bin": {
+    "x-use-mcp": "bin/x-use-mcp.js"
+  },
+  "scripts": {
+    "start": "node bin/x-use-mcp.js",
+    "test": "node --test --test-reporter=spec",
+    "check": "node scripts/check-mcp.mjs",
+    "check:live": "node scripts/check-mcp.mjs --live",
+    "live": "node scripts/live-smoke.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2"
+  }
+}
+

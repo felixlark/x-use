@@ -1,0 +1,40 @@
+name: Feature request
+description: Propose a read-only capability or project improvement
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        X Use is currently read-only. Any proposal with external side effects must describe an explicit per-call authorization and unknown-result reconciliation model.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: dropdown
+    id: side_effect
+    attributes:
+      label: External side effect
+      options:
+        - No external write
+        - Posts or replies
+        - Direct messages or XChat
+        - Follows, likes, or bookmarks
+        - Media upload
+        - Delete or other irreversible action
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Official sources
+      description: Link the current X API documentation.
+
