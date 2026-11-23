@@ -75,8 +75,8 @@ description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖�
 
 - `xurl` 仍是命令行读取、搜索和写入操作的既有官方入口，也是 X Use 的唯一认证来源。
 - `x-deck` 负责桌面客户端阅读和聊天界面。
-- `x-tweaks` 负责 x.com 页面布局增强。
-- X Use 只提供结构化 API/MCP 读取，不接管 GUI、浏览器会话、草稿或页面状态。
+- [X Tweaks Chrome 扩展](https://github.com/felixlark/x-use/tree/main/chrome-extension)负责 x.com 页面布局增强，作为 X Use 仓库内独立加载的组件。
+- X Use MCP 提供结构化 API 读取，不接管 GUI、浏览器会话、草稿或页面状态。
 
 ## XChat
 
