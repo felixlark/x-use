@@ -1,0 +1,140 @@
+/* X Tweaks — layout modes and the Chat route are marked by content.js. */
+
+/* Navigation stays entirely native, including X's responsive compact mode. */
+
+/* Match Grok's native 1050px frame (980px content + 70px trailing gutter).
+   Its navigation slot includes 60px beyond the responsive inner navigation;
+   the remaining viewport space is split equally around that native frame.
+   Chat shares this navigation slot and keeps its own pane sizing. */
+html[data-xr-chat] header:has(nav):has(+ main),
+html[data-xr] header:has(+ main [data-testid="primaryColumn"]):has(+ main [data-testid="sidebarColumn"]) {
+  flex: 0 0 auto !important;
+  width: calc(var(--xr-nav-width, 275px) + 60px + max(0px, (100vw - var(--xr-nav-width, 275px) - 60px - 1050px) / 2)) !important;
+}
+
+/* 1. Hide the right column (search / trends / who-to-follow). */
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="sidebarColumn"] { display: none !important; }
+
+/* X's Home "new posts" pill is a status region over the first post. Hide only
+   that specific control; other status messages (including posting errors) stay. */
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [role="status"]:has(> button[aria-label^="New posts are available."]) {
+  display: none !important;
+}
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [data-xr-new-posts-row] {
+  display: none !important;
+}
+
+/* 2. Fill the main area's actual available width, rather than guessing from the
+      viewport and a fixed tool lane. X's wrappers retain a 990px width even after
+      the sidebar is hidden; allow every enclosing wrapper to shrink on portrait
+      displays and grow on wider ones. Scope this to X's two-column reading frame,
+      leaving Grok/Settings (no sidebar) and Chat (normal mode) native. */
+html[data-xr]:not([data-xr-chat]) main:has([data-testid="primaryColumn"]):has([data-testid="sidebarColumn"]) {
+  min-width: 0 !important;
+  align-items: stretch !important;
+}
+
+html[data-xr]:not([data-xr-chat]) main div:has([data-testid="primaryColumn"]):has([data-testid="sidebarColumn"]) {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  max-width: 990px !important;
+  min-width: 0 !important;
+}
+
+html[data-xr="wide"]:not([data-xr-chat]) main div:has([data-testid="primaryColumn"]):has([data-testid="sidebarColumn"]) {
+  max-width: none !important;
+}
+
+html[data-xr]:not([data-xr-chat]) main:has([data-testid="primaryColumn"]):has([data-testid="sidebarColumn"]) > div {
+  max-width: 1050px !important;
+  padding-right: 70px !important;
+  box-sizing: border-box !important;
+}
+
+/* Restoring the sidebar retains native column caps but lets the reading column
+   shrink to fit a portrait window. */
+html[data-xr="normal"]:not([data-xr-chat]) :has(> [data-testid="sidebarColumn"]) > [data-testid="primaryColumn"] {
+  flex: 1 1 600px !important;
+  min-width: 0 !important;
+}
+
+html[data-xr="wide"]:not([data-xr-chat]) :has(> [data-testid="sidebarColumn"]) > [data-testid="primaryColumn"] {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* 3. THE key one: X caps the timeline at max-width:600px on the div wrapping the
+      feed <section>. Release it so posts/text/media fill the column (composer and
+      feed align to the same width) instead of sitting in a narrow 600px strip. */
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] div:has(> section) {
+  max-width: none !important;
+}
+
+/* 4. Release X's inline media width caps so images/videos grow with the column. */
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [data-testid="tweet"] [style*="max-width"]:has([data-testid="tweetPhoto"], [data-testid="videoComponent"], [data-testid="videoPlayer"]) {
+  max-width: 100% !important;
+}
+
+/* 5. Give tall photos/videos more vertical room (bounded so portraits stay sane). */
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [data-testid="tweetPhoto"],
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [data-testid="tweetPhoto"] img,
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [data-testid="videoComponent"],
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [data-testid="videoPlayer"] {
+  max-height: min(88vh, 1100px) !important;
+}
+
+/* X fixes single photos to a 510px-tall inline box. Scale that box by the
+   image's own ratio (provided by content.js), then let its ratio placeholder
+   determine height. Portraits gain room without being stretched or cropped. */
+html[data-xr="wide"]:not([data-xr-chat]) [data-xr-photo-frame] {
+  width: min(100%, calc(min(88vh, 720px) * var(--xr-photo-ratio))) !important;
+  align-self: center !important;
+}
+html[data-xr="wide"]:not([data-xr-chat]) [data-xr-photo-frame] a > div[style*="width"][style*="height"] {
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* 6. Spread the tweet action bar evenly. X grows reply/retweet/like/views but leaves
+      bookmark + share as fixed trailing items, so they bunch up once the tweet is
+      widened. Make all six children share the row equally. Scoped to the action bar
+      (the group that contains the reply button) so no other role="group" is touched. */
+html[data-xr="wide"]:not([data-xr-chat]) [data-testid="primaryColumn"] [data-testid="tweet"] [role="group"]:has([data-testid="reply"]) > div {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  justify-content: flex-start !important;
+}
+
+/* ── Chat (/i/chat or legacy /messages): the open conversation lives in sidebarColumn, so wide mode
+      is forced off there by content.js. Hide the toggle too — it has nothing to do. ── */
+html[data-xr-chat] #x-reader-toggle { display: none !important; }
+
+/* ── Floating toggle button, sits in the bottom-right FAB stack. ── */
+#x-reader-toggle {
+  position: fixed;
+  right: 20px;
+  bottom: 150px; /* content.js re-stacks this just above the Grok/Chat buttons when found */
+  z-index: 2147483000;
+  width: 55px;
+  height: 55px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Fallback look — matches X's Grok/Chat dock (squircle, light). content.js clones
+     the real dock button's computed style at runtime so it tracks the actual theme. */
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #0f1419;
+  border: 1px solid rgb(159, 181, 195);
+  box-shadow: rgba(101, 119, 134, 0.2) 0 0 15px 0, rgba(101, 119, 134, 0.15) 0 0 3px 1px;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  padding: 0;
+  transition: transform .12s ease;
+}
+#x-reader-toggle:hover { transform: translateY(-1px); }
+#x-reader-toggle:active { transform: translateY(0); }
+#x-reader-toggle svg { width: 24px; height: 24px; display: block; }
+#x-reader-toggle[data-collapsed="true"] .xr-pane { fill: currentColor; opacity: .9; }

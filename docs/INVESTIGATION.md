@@ -128,10 +128,10 @@ X Chat API 是官方稳定文档的一部分，但内容安全边界不同于普
 ## 与 x-deck / x-tweaks 的职责边界
 
 - `x-deck`：macOS 桌面客户端，承载时间线、帖子详情、X Chat 页面和人工草稿
-- `x-tweaks`：Chrome 内容脚本，只调整 x.com 页面布局和导航
-- X Use：无 GUI、无浏览器能力，只把官方 X API 只读响应结构化给 Agent/MCP 客户端
+- [X Tweaks](https://github.com/felixlark/x-use/tree/main/chrome-extension)：同仓维护、独立加载的 Chrome 扩展，调整 x.com 页面布局和导航
+- X Use MCP：把官方 X API 只读响应结构化给 Agent/MCP 客户端
 
-三者可以共享同一 X 账号授权结果，但 X Use 不读取或控制前两者的会话、窗口、草稿或页面。
+Chrome 扩展随当前浏览器页面运行，MCP 单独通过 `xurl` 认证。MCP 不读取或控制客户端的会话、窗口、草稿或页面。
 
 ## 未验与风险
 

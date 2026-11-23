@@ -3,9 +3,11 @@
 [![CI](https://github.com/felixlark/x-use/actions/workflows/ci.yml/badge.svg)](https://github.com/felixlark/x-use/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**A read-only MCP server for the X API v2, using the official `xurl` OAuth client as the only credential source.**
+**Two tools for X: a read-only MCP server and the X Tweaks Chrome extension.**
 
-`X Use` exposes structured tools for posts, users, timelines, search, conversations, media metadata, and account/credit status. It does not manage a second token store and does not expose posting, reply, DM, follow, like, bookmark, delete, or media-upload tools.
+The MCP server uses the official `xurl` OAuth client as its only credential source. It exposes structured reads for posts, users, timelines, search, conversations, media metadata, and account/credit status. It does not manage a second token store or expose write tools.
+
+[X Tweaks Chrome extension](https://github.com/felixlark/x-use/tree/main/chrome-extension) adjusts the reading layout and adds browser history shortcuts. Chrome loads it separately from the MCP server.
 
 中文说明见下方。
 
@@ -166,7 +168,7 @@ npm run check:live
 
 ## 中文概览
 
-X Use 是一个只读的 X API v2 MCP Server。它复用本机官方 `xurl` 的 OAuth2 会话，不保存第二份 token，也不暴露发帖、回复、DM、关注、点赞、书签、删除或媒体上传工具。
+X Use 包含两个独立加载的组件。只读 X API v2 MCP 服务复用本机官方 `xurl` 的 OAuth2 会话，不保存第二份 token，也不暴露发帖、回复、DM、关注、点赞、书签、删除或媒体上传工具。[X Tweaks Chrome 扩展](https://github.com/felixlark/x-use/tree/main/chrome-extension)负责页面阅读布局和前进／后退快捷键。
 
 七个工具分别覆盖帖子、用户、用户帖子、搜索、会话、媒体元数据和认证/额度状态。返回使用统一的 `data`、`includes`、`pagination`、`meta` 信封；错误分为 `unauthenticated`、`forbidden`、`rate_limited`、`not_found`、`invalid_request` 和 `unknown`。
 

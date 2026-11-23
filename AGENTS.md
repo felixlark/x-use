@@ -1,6 +1,6 @@
 # X Use Contributor Notes
 
-X Use is an open-source, read-only MCP server for the official X API v2. The canonical repository is `felixlark/x-use`.
+The canonical repository is `felixlark/x-use`. It houses a read-only MCP server for the official X API v2 and the standalone X Tweaks Chrome extension in `chrome-extension/`.
 
 ## Engineering rules
 
@@ -9,6 +9,7 @@ X Use is an open-source, read-only MCP server for the official X API v2. The can
 - Preserve the official X API names in query mapping, especially `post.fields` and current expansion names.
 - Keep errors and diagnostics sanitized. Tests must not contain real tokens, cookies, private keys, or private account identifiers.
 - Public documentation and commits use the `felixlark` public identity only. Do not add personal paths, email addresses, real names, organization details, or private account IDs.
+- Keep the Chrome extension independently loadable. Its page layout and keyboard shortcuts do not use MCP credentials or change the MCP tool surface.
 
 ## Verification
 
