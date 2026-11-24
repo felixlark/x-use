@@ -125,7 +125,7 @@ X Chat API 是官方稳定文档的一部分，但内容安全边界不同于普
 - `GET /2/media/...` 在未加入所需 Project 的 App 上返回 `client-not-enrolled`；`x_post` 的 `includes.media` 已完成真实读取
 - 不使用 `xurl -v`，因为可能暴露敏感请求头；因此 X Use 不在运行时伪造 rate-limit remaining/reset
 
-## 与 x-deck / x-tweaks 的职责边界
+## 与 x-deck / X Tweaks 扩展的职责边界
 
 - `x-deck`：macOS 桌面客户端，承载时间线、帖子详情、X Chat 页面和人工草稿
 - [X Tweaks](https://github.com/felixlark/x-use/tree/main/chrome-extension)：同仓维护、独立加载的 Chrome 扩展，调整 x.com 页面布局和导航
