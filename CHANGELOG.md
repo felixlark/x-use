@@ -2,6 +2,19 @@
 
 All notable changes to X Use will be documented here.
 
+## 0.2.0 - 2026-11-27
+
+### Added
+
+- Read-only `x_chat_conversations` and `x_chat_read` MCP tools backed by the official `xurl` X Chat client.
+- X Chat key availability in `x_status`.
+- Stable `key_unavailable` and `decrypt_failed` errors.
+
+### Security
+
+- X Chat reads always use `--no-mark-read`.
+- X Chat sends, replies, read-state changes, media writes, and key operations remain unavailable through MCP.
+
 ## 0.1.0 - 2026-11-21
 
 ### Added

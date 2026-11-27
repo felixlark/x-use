@@ -167,6 +167,21 @@ export function parseMediaKey(input) {
   return mediaKey;
 }
 
+export function parseChatRef(input) {
+  const value = requireString(input, "conversation");
+  if (
+    /^@?[A-Za-z0-9_]{1,15}$/.test(value)
+    || /^g[0-9]{1,30}$/.test(value)
+    || /^[0-9]{1,30}(?:-[0-9]{1,30})?$/.test(value)
+  ) {
+    return value;
+  }
+  throw new XUseError(
+    "invalid_request",
+    "conversation must be an @username, numeric user ID, direct conversation ID, or g-prefixed group ID",
+  );
+}
+
 export function assertReadEndpoint(endpoint) {
   if (typeof endpoint !== "string" || !endpoint.startsWith("/2/") || /[\r\n]/.test(endpoint)) {
     throw new XUseError("unknown", "internal attempt to call a non-read or malformed X API endpoint");

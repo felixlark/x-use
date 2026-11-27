@@ -20,7 +20,7 @@ MCP client
 X Use 使用 MCP 标准 stdio JSON-RPC，不另建 HTTP 服务。当前实现：
 
 - 响应 `initialize`，声明 tools 和 resources capability。
-- 响应 `tools/list`，返回七个静态工具定义。
+- 响应 `tools/list`，返回九个静态工具定义。
 - 响应 `tools/call`，按工具名执行只读 X API 请求。
 - 响应 `resources/list`，提供 `x-use://skill` 和 `x-use://docs/investigation`。
 - 响应 `resources/read`，返回对应 Markdown。
@@ -28,7 +28,7 @@ X Use 使用 MCP 标准 stdio JSON-RPC，不另建 HTTP 服务。当前实现：
 
 工具定义集中在 [`src/tool-definitions.js`](../src/tool-definitions.js)，MCP 请求处理在 [`src/server.js`](../src/server.js)。
 
-## 七个工具
+## 九个工具
 
 所有工具都是只读的，并声明：
 
@@ -151,6 +151,14 @@ X Use 使用 MCP 标准 stdio JSON-RPC，不另建 HTTP 服务。当前实现：
 - `media_fields`
 
 调用 `/2/media/{media_key}`。如果 developer App 未加入所需 Project，X 会返回 `client-not-enrolled`，X Use 映射为 `forbidden`；此时可用父帖的 `x_post` 读取 `includes.media`，不会伪造独立媒体结果。
+
+### `x_chat_conversations`
+
+读取当前账号的 X Chat 收件箱。可选 `max_results` 为 1–100。工具使用 `xurl chat conversations --json`，不会把会话标记为已读。若本机没有 X Chat 私钥，公开会话列表仍可读取，但群名可能保持密文。
+
+### `x_chat_read`
+
+读取并解密一个 X Chat 会话的最近事件。必填 `conversation`，可填 `max_results`（1–100）。工具固定使用 `xurl chat read --json --no-mark-read`，不会发送消息、回复、标已读或改变其他聊天状态。本机缺少密钥时返回 `key_unavailable`，解密失败时返回 `decrypt_failed`。
 
 ### `x_status`
 

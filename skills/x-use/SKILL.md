@@ -1,11 +1,11 @@
 ---
 name: x-use
-description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖子、搜索、会话、媒体和认证/额度状态。也用于核对 X 和 X Chat 已授权自动回复的 [Bot] 标记，发送走既有获准入口。
+description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖子、搜索、会话、公开帖正文以及 X Chat 会话和解密事件，并核对认证、额度与密钥状态。发送走既有获准入口。
 ---
 
 # X Use
 
-用结构化工具读取 X API v2。MCP 服务名是 `x-use`；工具全部只读。
+用结构化工具读取 X API v2 和 X Chat。MCP 服务名是 `x-use`；工具全部只读。
 
 ## 先做
 
@@ -15,6 +15,7 @@ description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖�
 4. 关键词、操作符、日期筛选用 `x_search`，默认 `scope=recent`，只覆盖最近 7 天。
 5. 会话/回复用 `x_thread`。它先由帖子取得 `conversation_id`，再调用 Search；旧会话是否可得取决于搜索权益和范围。
 6. 只有已知 media key 时用 `x_media`。若返回 `forbidden`，可从父帖 `x_post` 的 `includes.media` 读取同一元数据。
+7. X Chat 先调用 `x_chat_conversations` 列出当前会话，再用 `x_chat_read` 读取指定会话最近事件。读取固定使用 `--no-mark-read`，不会改变已读状态。
 
 ## 返回合同
 
@@ -39,7 +40,7 @@ description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖�
 {
   "ok": false,
   "error": {
-    "code": "unauthenticated | forbidden | rate_limited | not_found | invalid_request | unknown",
+    "code": "unauthenticated | key_unavailable | decrypt_failed | forbidden | rate_limited | not_found | invalid_request | unknown",
     "message": "actionable message",
     "retryable": false,
     "http_status": 403,
@@ -88,5 +89,7 @@ description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖�
 
 ## XChat
 
-XChat 不是普通 DM 读取。它需要 `dm.read`／`dm.write`、Chat XDK 和本机私钥；OAuth access token 不能解密内容。当前 X Use 不暴露 XChat 工具。若 `xurl chat keys status` 显示本机无 keys，应把内容读取记为 `blocked`；不得生成、导出或导入私钥来绕过。
+XChat 不是普通 DM 读取。它需要 `dm.read`、Chat XDK 和本机私钥；OAuth access token 不能解密内容。X Use 现在提供两个只读工具：`x_chat_conversations` 列会话，`x_chat_read` 解密读取指定会话的事件。发送、回复、标已读和其他写入均未暴露。
+
+若 `x_status` 或 `xurl chat keys status` 显示本机无 keys，读取应记为 `blocked(local_private_key_absent)`。本人应在其可信终端通过官方 `xurl chat keys restore` 或 `xurl chat keys import` 恢复；PIN 和私钥不得进入对话、Issue、日志、仓库或第二个凭据库。
 

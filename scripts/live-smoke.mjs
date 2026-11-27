@@ -34,7 +34,17 @@ try {
   const tools = await client.listTools();
   assert.deepEqual(
     tools.tools.map((tool) => tool.name).sort(),
-    ["x_media", "x_post", "x_search", "x_status", "x_thread", "x_user", "x_user_posts"],
+    [
+      "x_chat_conversations",
+      "x_chat_read",
+      "x_media",
+      "x_post",
+      "x_search",
+      "x_status",
+      "x_thread",
+      "x_user",
+      "x_user_posts",
+    ],
   );
 
   const status = await call("x_status", {});
