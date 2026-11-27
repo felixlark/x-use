@@ -37,6 +37,7 @@ try {
     [
       "x_chat_conversations",
       "x_chat_read",
+      "x_mcp",
       "x_media",
       "x_post",
       "x_search",

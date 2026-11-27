@@ -1,6 +1,6 @@
 ---
 name: x-use
-description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖子、搜索、会话、公开帖正文以及 X Chat 会话和解密事件，并核对认证、额度与密钥状态。发送走既有获准入口。
+description: 通过只读 X Use MCP 调用官方 X MCP，查询 X 帖子、用户、提及、搜索以及 X Chat 会话和事件；使用本机 Chat XDK 解密已恢复的 X Chat 内容。发送走既有获准入口。
 ---
 
 # X Use
@@ -16,6 +16,7 @@ description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖�
 5. 会话/回复用 `x_thread`。它先由帖子取得 `conversation_id`，再调用 Search；旧会话是否可得取决于搜索权益和范围。
 6. 只有已知 media key 时用 `x_media`。若返回 `forbidden`，可从父帖 `x_post` 的 `includes.media` 读取同一元数据。
 7. X Chat 先调用 `x_chat_conversations` 列出当前会话，再用 `x_chat_read` 读取指定会话最近事件。读取固定使用 `--no-mark-read`，不会改变已读状态。
+8. 官方 X MCP 统一入口用 `x_mcp`。先传 `list_tools=true` 查看实时白名单，再把官方工具名和参数放进 `tool`／`arguments`；连接固定为只读模式。公共 X 与 X Chat API 元数据优先走这里。
 
 ## 返回合同
 
@@ -90,6 +91,8 @@ description: 通过只读 X Use MCP 查询 X 帖子、用户、用户近期帖�
 ## XChat
 
 XChat 不是普通 DM 读取。它需要 `dm.read`、Chat XDK 和本机私钥；OAuth access token 不能解密内容。X Use 现在提供两个只读工具：`x_chat_conversations` 列会话，`x_chat_read` 解密读取指定会话的事件。发送、回复、标已读和其他写入均未暴露。
+
+官方 X MCP 能统一返回 X 与 X Chat 的 API 资源、会话元数据和加密事件，但按官方接口合同，X Chat 明文必须在客户端用 Chat XDK 解密。`x_mcp` 保留官方只读白名单，`x_chat_read` 继续承担本机 Chat XDK 的只读解密路径。
 
 若 `x_status` 或 `xurl chat keys status` 显示本机无 keys，读取应记为 `blocked(local_private_key_absent)`。本人应在其可信终端通过官方 `xurl chat keys restore` 或 `xurl chat keys import` 恢复；PIN 和私钥不得进入对话、Issue、日志、仓库或第二个凭据库。
 

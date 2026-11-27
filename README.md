@@ -5,7 +5,7 @@
 
 **Two tools for X: a read-only MCP server and the X Tweaks Chrome extension.**
 
-The MCP server uses the official `xurl` OAuth client as its only credential source. It exposes structured reads for posts, users, timelines, search, public conversations, X Chat conversations and decrypted events, media metadata, and account/credit status. It does not manage a second token store or expose write tools.
+The MCP server uses the official `xurl` OAuth client as its only credential source. It exposes structured reads for posts, users, timelines, search, public conversations, X Chat conversations and decrypted events, media metadata, and account/credit status. It also wraps the official `https://api.x.com/mcp?read_only=true` catalog through `x_mcp`. It does not manage a second token store or expose write tools.
 
 [X Tweaks Chrome extension](https://github.com/felixlark/x-use/tree/main/chrome-extension) adjusts the reading layout and adds browser history shortcuts. Chrome loads it separately from the MCP server.
 
@@ -23,6 +23,7 @@ The MCP server uses the official `xurl` OAuth client as its only credential sour
 | `x_media` | Read media metadata by media key | `GET /2/media/{media_key}` |
 | `x_chat_conversations` | List the current X Chat inbox without changing read state | `xurl chat conversations --json` |
 | `x_chat_read` | Read and decrypt one X Chat conversation without changing read state | `xurl chat read --json --no-mark-read` |
+| `x_mcp` | Call a whitelisted tool from the official read-only X MCP | `https://api.x.com/mcp?read_only=true` |
 | `x_status` | Verify authentication and read developer credits | `/2/users/me` + `/2/usage/credits` |
 
 All tool calls return JSON with a stable envelope:
@@ -155,6 +156,7 @@ A successful result contains the X payload plus a pagination view:
 - X API rate limits, account entitlement, and usage charges remain in force; this project does not buy credits or change billing.
 - `x_media` may return `forbidden` when the developer App is not enrolled in a required Project. Parent-post `includes.media` remains available through `x_post`.
 - XChat read tools remain read-only and always pass `--no-mark-read`. Encrypted content requires DM scope and client-held private keys; sending, replies, marking read, and other writes are not exposed.
+- Official X MCP supplies public X and X Chat API reads, including encrypted Chat events. Chat plaintext still requires the local Chat XDK; `x_mcp` never claims ciphertext is readable text.
 - Never put tokens, cookies, XChat PINs, private keys, or private account data in an issue, pull request, fixture, or log.
 
 ## Development
@@ -172,7 +174,7 @@ npm run check:live
 
 X Use 包含两个独立加载的组件。只读 X 与 X Chat MCP 服务复用本机官方 `xurl` 的 OAuth2 会话和 X Chat 本机密钥，不保存第二份 token，也不暴露发帖、回复、发私信、标已读、关注、点赞、书签、删除或媒体上传工具。[X Tweaks Chrome 扩展](https://github.com/felixlark/x-use/tree/main/chrome-extension)负责页面阅读布局和前进／后退快捷键。
 
-九个工具分别覆盖帖子、用户、用户帖子、搜索、公开会话、媒体元数据、X Chat 会话、X Chat 解密事件，以及认证/额度/密钥状态。返回使用统一的 `data`、`includes`、`pagination`、`meta` 信封；错误另包含 `key_unavailable` 和 `decrypt_failed`。
+十个工具分别覆盖帖子、用户、用户帖子、搜索、公开会话、媒体元数据、X Chat 会话、X Chat 解密事件、官方只读 X MCP 白名单，以及认证/额度/密钥状态。返回使用统一的 `data`、`includes`、`pagination`、`meta` 信封；错误另包含 `key_unavailable` 和 `decrypt_failed`。
 
 安装、Tool 参数、调用链和错误映射见 [接口与实现](docs/INTERFACES.md)。使用前需要 Node.js 20+、官方 `xurl` 和对应的 X API 权益；本项目的真实读取 smoke 会消耗实际 API credits。
 

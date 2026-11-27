@@ -2,6 +2,18 @@
 
 All notable changes to X Use will be documented here.
 
+## 0.3.0 - 2026-11-27
+
+### Added
+
+- `x_mcp` integration with the official read-only X MCP at `https://api.x.com/mcp?read_only=true`.
+- Whitelisted official tools for public X reads and X Chat conversations/events.
+
+### Security
+
+- The upstream X MCP connection is fixed to read-only mode.
+- X Chat event ciphertext is never presented as decrypted message text.
+
 ## 0.2.0 - 2026-11-27
 
 ### Added

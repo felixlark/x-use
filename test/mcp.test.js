@@ -37,7 +37,7 @@ function parseResult(result) {
   return JSON.parse(text);
 }
 
-test("tools/list exposes exactly nine read-only tools", async () => {
+test("tools/list exposes exactly ten read-only tools", async () => {
   const result = await client.listTools();
   const names = result.tools.map((tool) => tool.name).sort();
   assert.deepEqual(names, [...EXPECTED_TOOL_NAMES].sort());

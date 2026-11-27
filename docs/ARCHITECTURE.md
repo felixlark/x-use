@@ -11,27 +11,28 @@ MCP client
   -> official X API v2
 ```
 
-不直接管理 OAuth token，不复制 `~/.xurl`，不代理官方 hosted MCP。
+不直接管理 OAuth token，不复制 `~/.xurl`。公共 X 与 X Chat API 读取通过 `x_mcp` 调用官方 hosted MCP；本机 Chat XDK 仅负责客户端解密，不把私钥交给上游。
 
 ## 为什么不是只有 xurl CLI
 
 用户明确需要可发现、可调用的 X Use MCP。CLI 继续作为认证正本和人工回退；MCP 只补稳定工具合同、结构化错误和 Agent 原生发现。
 
-## 为什么不是官方 hosted MCP 直接适配
+## 官方 hosted MCP 适配
 
-官方 `api.x.com/mcp?read_only=true` 实测可用，但当前 59 个工具中没有最近搜索和独立媒体查询。若用它做主入口，仍需混合一个 REST 后端，产生两套 schema/错误/升级面。本期使用同一套官方 REST 端点，入口更小，也更符合七项需求。
+官方 `api.x.com/mcp?read_only=true` 当前实测提供 59 个只读工具，已包含公开 X、提及、搜索、X Chat 会话和加密事件。X Use 通过 `x_mcp` 暴露白名单并保持上游只读。
 
-若未来官方 MCP 增加这两项，可重新评估：优先保留现有工具名和返回合同，内部切到 hosted MCP；调用方不必改。
+X Chat 明文仍必须由客户端 Chat XDK 解密；hosted MCP 只返回加密事件，不能冒充明文。现有高层的 `x_chat_read` 继续承担本机解密，`x_mcp` 负责统一的 X／X Chat API 读取。
 
 ## 组件
 
 | 组件 | 责任 |
 | --- | --- |
 | `src/server.js` | MCP `tools/list`、`tools/call`、resources 和统一 envelope |
-| `src/tool-definitions.js` | 九个只读工具的 JSON Schema |
+| `src/tool-definitions.js` | 十个只读工具的 JSON Schema |
 | `src/params.js` | URL/ID、字段、分页和查询参数映射 |
 | `src/errors.js` | 分类、脱敏和错误 envelope |
 | `src/xurl-client.js` | `execFile` 调用 `xurl`，无 shell、无 verbose、无 token 输出 |
+| `src/xmcp-client.js` | 通过官方 `xurl mcp` 桥连接只读 X MCP |
 | `skills/x-use` | 调用规则、边界和回退 |
 | `scripts/install.sh` | 版本化安装、current symlink、Skill 同步 |
 
