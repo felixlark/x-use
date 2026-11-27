@@ -30,6 +30,7 @@ export const EXPECTED_TOOL_NAMES = [
   "x_media",
   "x_chat_conversations",
   "x_chat_read",
+  "x_mcp",
   "x_status",
 ];
 
@@ -243,6 +244,48 @@ export const TOOL_DEFINITIONS = [
           maximum: 100,
           default: 50,
           description: "Maximum number of recent X Chat events to read.",
+        },
+      },
+    },
+    annotations: readAnnotations,
+  },
+  {
+    name: "x_mcp",
+    title: "Call official read-only X MCP",
+    description: "Call a whitelisted tool from the official X MCP at https://api.x.com/mcp?read_only=true. Use list_tools=true to inspect the live upstream catalog. Public X and X Chat API reads share this official MCP backend.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        list_tools: {
+          type: "boolean",
+          description: "Return the live official read-only X MCP tool catalog.",
+        },
+        tool: {
+          type: "string",
+          enum: [
+            "get_users_me",
+            "get_users_by_username",
+            "get_users_by_id",
+            "get_users_mentions",
+            "get_users_posts",
+            "get_users_timeline",
+            "get_posts_by_id",
+            "get_posts_by_ids",
+            "search_posts_all",
+            "get_chat_conversations",
+            "get_chat_conversation",
+            "get_chat_conversation_events",
+            "get_chat_message_requests",
+            "get_chat_message_request",
+            "get_users_public_key",
+            "get_users_public_keys",
+          ],
+        },
+        arguments: {
+          type: "object",
+          description: "Arguments passed through to the selected official X MCP tool.",
+          additionalProperties: true,
         },
       },
     },

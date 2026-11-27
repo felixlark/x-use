@@ -94,12 +94,16 @@ OAuth2 access token 默认约 2 小时有效；`offline.access` 才会获得 ref
 - `xurl mcp`：本地 stdio↔HTTP 桥，读取既有 `~/.xurl` 认证或环境凭据，自动刷新并注入 Bearer
 - `?read_only=true`：服务端只返回 GET 类工具并拒绝写调用
 
-2026-11-21 的参考环境使用 `xurl 1.3.4` 连接官方只读 X MCP，成功得到 59 个工具、真实额度数据和真实公开帖子。工具中包括 `get_posts_by_id`、`get_users_by_username`、`get_users_posts`、`search_posts_all` 和 `get_usage_credits`，但没有：
+2026-11-27 的参考环境使用 `xurl 1.3.4` 连接官方 X MCP：
 
-- 最近搜索工具
-- 独立 media-key 查询工具
+- 完整模式实测 101 个工具
+- `?read_only=true` 实测 59 个工具
+- 已有 `get_users_mentions`、`get_users_posts`、`get_users_timeline`、`search_posts_all`
+- 已有 `get_posts_by_id`、`get_posts_by_ids`、`get_users_by_username`
+- 已有 `get_chat_conversations`、`get_chat_conversation`、`get_chat_conversation_events`
+- 已有 `get_users_public_key`、`get_users_public_keys`
 
-官方 MCP 不提供 native dynamic client registration；仍需自家 X developer App 和 `xurl` 桥。它可作为未来上游能力增强，但本期不能单独覆盖最小入口。
+官方 MCP 不提供 native dynamic client registration；仍需自家 X developer App 和 `xurl` 桥。X Use 已通过 `x_mcp` 适配该入口，并固定使用只读 URL。
 
 ## XChat
 
@@ -113,12 +117,14 @@ X Chat API 是官方稳定文档的一部分，但内容安全边界不同于普
 在一个已配置 OAuth2 用户的参考环境中，`xurl chat keys status` 显示：
 
 - 账号已注册 1 个 key version
-- 本机 local keys 为 none
+- 2026-11-27 已通过官方 Recovery PIN 流程把注册密钥恢复到本机
 
-因此普通 X 读取与 XChat 会话列表可用，但解密事件读取在密钥补齐前仍为 `blocked(local_private_key_absent)`。X Use 已增加两个只读工具：
+普通 X 读取与 XChat 会话列表可用。官方 X MCP 的 `get_chat_conversation_events` 也已实测返回加密事件；按官方合同，明文必须由客户端 Chat XDK 解密。X Use 已增加两个只读工具：
 
 - `x_chat_conversations`：列出当前收件箱，不改变已读状态
 - `x_chat_read`：调用 `xurl chat read --json --no-mark-read` 读取并解密一个会话
+
+当前 `xurl 1.3.4` 还有公开的批量公钥兼容问题（上游 #94）：批量端点可能返回 `client-not-enrolled`，而单人端点正常。X Use 不以补丁掩盖该事实；`x_mcp` 负责官方 API 统一读取，真实解密验收继续以本机 Chat XDK 的成功读回为准。
 
 不得从 X Chat App 提取、导出或复制私钥；只允许本人在可信终端通过官方恢复流程把已注册密钥补到本机。
 
@@ -146,7 +152,8 @@ Chrome 扩展随当前浏览器页面运行，MCP 单独通过 `xurl` 认证。M
 | 独立媒体查询 | blocked(client-not-enrolled) | 工具存在并真实上报；可从父帖 includes 取媒体 |
 | 运行时 rate-limit headers | unavailable by chosen transport | 可区分 429，但不编造 remaining/reset |
 | XChat 会话列表 | verified | 本机无私钥时仍可列出会话 |
-| XChat 解密事件 | blocked(local_private_key_absent) | 工具入口已实现；须本人先完成官方密钥恢复，不能读取或记录 PIN/私钥 |
+| XChat 加密事件 | verified through XMCP | 只返回密文；明文必须由本机 Chat XDK 解密 |
+| XChat 明文 | pending | 本机密钥已恢复；`xurl` 批量公钥问题仍未消除，不能把密文或空结果冒充成明文 |
 | 其他 X 账号/其他机器 | not tested | 必须自行完成 xurl OAuth2 并用 `x_status` 验证 |
 | 写操作 | intentionally absent | 不是待授权；需要另案逐动作授权 |
 

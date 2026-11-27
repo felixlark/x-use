@@ -7,6 +7,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 const expected = [
   "x_chat_conversations",
   "x_chat_read",
+  "x_mcp",
   "x_media",
   "x_post",
   "x_search",
@@ -57,6 +58,18 @@ try {
     assert.equal(status.isError, false);
     assert.equal(statusBody.data.authentication.authenticated, true);
     summary.status = statusBody.data;
+
+    const xmcp = await client.callTool({
+      name: "x_mcp",
+      arguments: { list_tools: true },
+    });
+    const xmcpBody = JSON.parse(xmcp.content.find((item) => item.type === "text").text);
+    assert.equal(xmcp.isError, false);
+    assert.ok(xmcpBody.data.length > 0);
+    summary.xmcp = {
+      read_only_tools: xmcpBody.data.length,
+      includes_chat: xmcpBody.data.some((tool) => tool.name === "get_chat_conversations"),
+    };
 
     const post = await client.callTool({
       name: "x_post",

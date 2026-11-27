@@ -25,6 +25,7 @@ import {
   withDefaultList,
 } from "./params.js";
 import { EXPECTED_TOOL_NAMES, TOOL_DEFINITIONS } from "./tool-definitions.js";
+import { X_MCP_READ_TOOLS, XurlMcpClient } from "./xmcp-client.js";
 import { parseAuthStatus, parseXChatKeyStatus, XurlClient } from "./xurl-client.js";
 
 const packageJson = JSON.parse(
@@ -125,7 +126,10 @@ async function capture(operation) {
   }
 }
 
-export function createXUseServer({ client = new XurlClient() } = {}) {
+export function createXUseServer({
+  client = new XurlClient(),
+  xmcp = new XurlMcpClient(),
+} = {}) {
   const server = new Server(
     { name: "x-use", version: packageJson.version },
     {
@@ -336,6 +340,53 @@ export function createXUseServer({ client = new XurlClient() } = {}) {
             endpoint: "xurl chat read --json --no-mark-read",
             conversation,
             read_state_changed: false,
+          }),
+        };
+      }
+
+      case "x_mcp": {
+        if (input.list_tools === true) {
+          const catalog = await xmcp.listTools();
+          const allowed = new Set(X_MCP_READ_TOOLS);
+          const tools = catalog.tools
+            .filter((tool) => allowed.has(tool.name))
+            .map((tool) => sanitize({
+              name: tool.name,
+              title: tool.title ?? null,
+              description: tool.description ?? null,
+              input_schema: tool.inputSchema ?? null,
+            }));
+          return {
+            ok: true,
+            data: tools,
+            includes: null,
+            pagination: null,
+            meta: {
+              tool: name,
+              backend: "official_x_mcp",
+              url: "https://api.x.com/mcp?read_only=true",
+              tool_count: tools.length,
+            },
+          };
+        }
+        const tool = requireString(input.tool, "tool");
+        if (!X_MCP_READ_TOOLS.includes(tool)) {
+          throw new XUseError("invalid_request", `X MCP tool is not allowed: ${tool}`);
+        }
+        const upstreamArguments = requireObject(input.arguments ?? {}, "arguments");
+        const body = await xmcp.callTool(tool, upstreamArguments);
+        return {
+          ok: true,
+          data: sanitize(body?.data ?? body),
+          includes: sanitize(body?.includes ?? null),
+          pagination: paginationFrom(body?.meta),
+          meta: sanitize({
+            tool: name,
+            backend: "official_x_mcp",
+            url: "https://api.x.com/mcp?read_only=true",
+            upstream_tool: tool,
+            upstream_meta: body?.meta ?? null,
+            partial_errors: body?.errors ?? [],
           }),
         };
       }
