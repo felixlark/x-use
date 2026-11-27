@@ -115,7 +115,12 @@ X Chat API 是官方稳定文档的一部分，但内容安全边界不同于普
 - 账号已注册 1 个 key version
 - 本机 local keys 为 none
 
-因此普通 X 读取可用，但 XChat 内容读取为 `blocked(local_private_key_absent)`。不得从 X Chat App 提取、导入或复制私钥；若未来需要，只由用户在其可信客户端完成恢复，另行评估只读工具。
+因此普通 X 读取与 XChat 会话列表可用，但解密事件读取在密钥补齐前仍为 `blocked(local_private_key_absent)`。X Use 已增加两个只读工具：
+
+- `x_chat_conversations`：列出当前收件箱，不改变已读状态
+- `x_chat_read`：调用 `xurl chat read --json --no-mark-read` 读取并解密一个会话
+
+不得从 X Chat App 提取、导出或复制私钥；只允许本人在可信终端通过官方恢复流程把已注册密钥补到本机。
 
 ## 参考实现验证
 
@@ -140,7 +145,8 @@ Chrome 扩展随当前浏览器页面运行，MCP 单独通过 `xurl` 认证。M
 | 全归档搜索 | unknown | 可能 `forbidden`；不自动改用其他搜索范围 |
 | 独立媒体查询 | blocked(client-not-enrolled) | 工具存在并真实上报；可从父帖 includes 取媒体 |
 | 运行时 rate-limit headers | unavailable by chosen transport | 可区分 429，但不编造 remaining/reset |
-| XChat 内容 | blocked(local_private_key_absent) | 不在 MVP；密钥不由本工程处理 |
+| XChat 会话列表 | verified | 本机无私钥时仍可列出会话 |
+| XChat 解密事件 | blocked(local_private_key_absent) | 工具入口已实现；须本人先完成官方密钥恢复，不能读取或记录 PIN/私钥 |
 | 其他 X 账号/其他机器 | not tested | 必须自行完成 xurl OAuth2 并用 `x_status` 验证 |
 | 写操作 | intentionally absent | 不是待授权；需要另案逐动作授权 |
 

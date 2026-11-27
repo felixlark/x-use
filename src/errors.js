@@ -123,6 +123,10 @@ export function classifyXurlFailure({ exitCode = 1, stdout = "", stderr = "" } =
     || /noauthmethod|no authentication method|not authenticated|missing (?:an? )?(?:token|credential)|invalid or expired token/i.test(`${message}\n${stderr}\n${stdout}`)
   ) {
     code = "unauthenticated";
+  } else if (/no xchat keys found|bring your existing keys to this machine/i.test(`${message}\n${stderr}\n${stdout}`)) {
+    code = "key_unavailable";
+  } else if (/failed to decrypt (?:events|message)|could not decrypt/i.test(`${message}\n${stderr}\n${stdout}`)) {
+    code = "decrypt_failed";
   } else if (httpStatus === 429 || hasRateLimit) {
     code = "rate_limited";
   } else if (hasResourceNotFound || httpStatus === 404) {

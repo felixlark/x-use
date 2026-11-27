@@ -28,7 +28,7 @@ MCP client
 | 组件 | 责任 |
 | --- | --- |
 | `src/server.js` | MCP `tools/list`、`tools/call`、resources 和统一 envelope |
-| `src/tool-definitions.js` | 七个只读工具的 JSON Schema |
+| `src/tool-definitions.js` | 九个只读工具的 JSON Schema |
 | `src/params.js` | URL/ID、字段、分页和查询参数映射 |
 | `src/errors.js` | 分类、脱敏和错误 envelope |
 | `src/xurl-client.js` | `execFile` 调用 `xurl`，无 shell、无 verbose、无 token 输出 |
@@ -53,7 +53,7 @@ MCP client
 3. 不启用 `xurl -v`，避免请求头进入日志。
 4. 错误体递归删除 token、secret、authorization、cookie、password、PIN 和 client secret 类键。
 5. stdout 只承载 MCP JSON-RPC；诊断写 stderr。
-6. XChat 私钥和 PIN 不进入本进程。
+6. XChat 私钥和 PIN 不进入本进程。`x_chat_read` 固定传 `--no-mark-read`，只读取、不改已读状态。
 
 ## 返回与错误
 

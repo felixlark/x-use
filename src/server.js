@@ -15,6 +15,7 @@ import {
   DEFAULTS,
   optionalNumber,
   optionalString,
+  parseChatRef,
   parseMediaKey,
   parsePostRef,
   parseUserRef,
@@ -24,7 +25,7 @@ import {
   withDefaultList,
 } from "./params.js";
 import { EXPECTED_TOOL_NAMES, TOOL_DEFINITIONS } from "./tool-definitions.js";
-import { parseAuthStatus, XurlClient } from "./xurl-client.js";
+import { parseAuthStatus, parseXChatKeyStatus, XurlClient } from "./xurl-client.js";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -298,6 +299,47 @@ export function createXUseServer({ client = new XurlClient() } = {}) {
         });
       }
 
+      case "x_chat_conversations": {
+        const maxResults = optionalNumber(input.max_results, "max_results", { min: 1, max: 100 }) ?? 20;
+        const body = await client.chatConversations({ maxResults });
+        const conversations = Array.isArray(body?.data) ? body.data : [];
+        return {
+          ok: true,
+          data: sanitize(conversations),
+          includes: null,
+          pagination: paginationFrom(body?.meta),
+          meta: sanitize({
+            tool: name,
+            backend: "xurl_xchat",
+            endpoint: "xurl chat conversations --json",
+            upstream_meta: body?.meta ?? null,
+            read_state_changed: false,
+          }),
+        };
+      }
+
+      case "x_chat_read": {
+        const conversation = parseChatRef(input.conversation);
+        const maxResults = optionalNumber(input.max_results, "max_results", { min: 1, max: 100 }) ?? 50;
+        const body = await client.chatRead({ conversation, maxResults });
+        if (!Array.isArray(body)) {
+          throw new XUseError("unknown", "xurl returned an invalid X Chat event list");
+        }
+        return {
+          ok: true,
+          data: sanitize(body),
+          includes: null,
+          pagination: null,
+          meta: sanitize({
+            tool: name,
+            backend: "xurl_xchat",
+            endpoint: "xurl chat read --json --no-mark-read",
+            conversation,
+            read_state_changed: false,
+          }),
+        };
+      }
+
       case "x_status": {
         const configured = client.config();
         const version = await capture(() => client.version());
@@ -308,6 +350,7 @@ export function createXUseServer({ client = new XurlClient() } = {}) {
         const meQuery = buildQuery({ "user.fields": ["id", "name", "username"] });
         const me = await capture(() => client.request(`/2/users/me${meQuery}`));
         const credits = await capture(() => client.request("/2/usage/credits"));
+        const xchatKeys = await capture(() => client.chatKeyStatus());
         return {
           ok: true,
           data: {
@@ -327,6 +370,11 @@ export function createXUseServer({ client = new XurlClient() } = {}) {
               available: credits.ok,
               data: credits.ok ? sanitize(credits.value?.data ?? null) : null,
               error: credits.ok ? null : credits.error,
+            },
+            xchat: {
+              available: xchatKeys.ok,
+              keys: xchatKeys.ok ? parseXChatKeyStatus(xchatKeys.value) : null,
+              error: xchatKeys.ok ? null : xchatKeys.error,
             },
             rate_limits: {
               runtime_headers_available: false,

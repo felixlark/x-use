@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 const args = process.argv.slice(2);
 const endpoint = args.at(-1) ?? "";
+const chatIndex = args.indexOf("chat");
+const chatArgs = chatIndex >= 0 ? args.slice(chatIndex + 1) : [];
 
 function output(value, code = 0) {
   process.stdout.write(`${JSON.stringify(value)}\n`);
@@ -27,6 +29,46 @@ if (args.includes("auth") && args.includes("status")) {
     "      bearer: –",
     "",
   ].join("\n"));
+  process.exit(0);
+}
+
+if (chatArgs[0] === "keys" && chatArgs[1] === "status") {
+  process.stdout.write([
+    "user:         @example_user (10001)",
+    "local keys:   none — run 'xurl chat keys restore'",
+    "registered:   1 key(s) on account",
+    "",
+  ].join("\n"));
+  process.exit(0);
+}
+
+if (chatArgs[0] === "conversations") {
+  output({
+    data: [{
+      id: "123-456",
+      participant_ids: ["456"],
+      is_archived: false,
+      is_muted: false,
+      type: "direct",
+    }],
+    meta: {
+      has_more: true,
+      has_message_requests: false,
+      next_token: "fixture-chat-next",
+      result_count: 1,
+    },
+  });
+  process.exit(0);
+} else if (chatArgs[0] === "read") {
+  output([
+    {
+      id: "event-1",
+      type: "message",
+      sender_id: "456",
+      conversation_id: chatArgs[1],
+      message: { id: "message-1", text: "fixture chat message" },
+    },
+  ]);
   process.exit(0);
 }
 

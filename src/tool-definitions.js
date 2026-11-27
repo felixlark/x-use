@@ -28,6 +28,8 @@ export const EXPECTED_TOOL_NAMES = [
   "x_search",
   "x_thread",
   "x_media",
+  "x_chat_conversations",
+  "x_chat_read",
   "x_status",
 ];
 
@@ -199,6 +201,49 @@ export const TOOL_DEFINITIONS = [
           description: "X media key in the form <type>_<id>.",
         },
         media_fields: stringArray("Mapped to media.fields."),
+      },
+    },
+    annotations: readAnnotations,
+  },
+  {
+    name: "x_chat_conversations",
+    title: "List the X Chat inbox",
+    description: "List the authenticated user's current X Chat conversations through the official xurl X Chat client. Does not change read state. Read-only.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        max_results: {
+          type: "integer",
+          minimum: 1,
+          maximum: 100,
+          default: 20,
+          description: "Maximum number of X Chat conversations to list.",
+        },
+      },
+    },
+    annotations: readAnnotations,
+  },
+  {
+    name: "x_chat_read",
+    title: "Read an X Chat conversation",
+    description: "Read and decrypt recent events from one X Chat conversation through the official xurl X Chat client. Always uses --no-mark-read. Read-only.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["conversation"],
+      properties: {
+        conversation: {
+          type: "string",
+          description: "X Chat @username, numeric user ID, direct conversation ID, or g-prefixed group ID.",
+        },
+        max_results: {
+          type: "integer",
+          minimum: 1,
+          maximum: 100,
+          default: 50,
+          description: "Maximum number of recent X Chat events to read.",
+        },
       },
     },
     annotations: readAnnotations,

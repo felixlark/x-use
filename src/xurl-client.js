@@ -110,6 +110,66 @@ export class XurlClient {
     return result.stdout;
   }
 
+  async chatKeyStatus() {
+    const result = await this.execute([
+      ...this.baseArgs(),
+      "chat",
+      "keys",
+      "status",
+      "--auth",
+      "oauth2",
+    ]);
+    if (result.exitCode !== 0) {
+      throw classifyXurlFailure(result);
+    }
+    return result.stdout.trim();
+  }
+
+  async chatConversations({ maxResults }) {
+    return this.executeJson([
+      ...this.baseArgs(),
+      "chat",
+      "conversations",
+      "--json",
+      "--auth",
+      "oauth2",
+      "--max-results",
+      String(maxResults),
+    ]);
+  }
+
+  async chatRead({ conversation, maxResults }) {
+    return this.executeJson([
+      ...this.baseArgs(),
+      "chat",
+      "read",
+      conversation,
+      "--json",
+      "--no-mark-read",
+      "--auth",
+      "oauth2",
+      "--max-results",
+      String(maxResults),
+    ]);
+  }
+
+  async executeJson(args) {
+    const result = await this.execute(args);
+    let body;
+    try {
+      body = result.stdout.trim() === "" ? undefined : JSON.parse(result.stdout);
+    } catch {
+      body = undefined;
+    }
+    if (result.exitCode !== 0 || hasOnlyProblems(body)) {
+      throw classifyXurlFailure(result);
+    }
+    if (body === undefined) {
+      throw new XUseError("unknown", "xurl returned no parseable JSON");
+    }
+    return body;
+  }
+
   async version() {
     const result = await this.execute(["version"]);
     if (result.exitCode !== 0) {
@@ -117,6 +177,17 @@ export class XurlClient {
     }
     return result.stdout.trim();
   }
+}
+
+export function parseXChatKeyStatus(text) {
+  const value = String(text);
+  const localNone = /^local keys:\s*none\b/im.test(value);
+  const registered = value.match(/^registered:\s*([0-9]+) key\(s\) on account\b/im);
+  return sanitize({
+    local_available: !localNone && /^local keys:\s*(?!none\b)\S/im.test(value),
+    local_none: localNone,
+    registered_count: registered ? Number(registered[1]) : null,
+  });
 }
 
 export function parseAuthStatus(text, selectedApp) {

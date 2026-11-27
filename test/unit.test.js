@@ -4,11 +4,12 @@ import { classifyXurlFailure } from "../src/errors.js";
 import {
   assertReadEndpoint,
   buildQuery,
+  parseChatRef,
   parseMediaKey,
   parsePostRef,
   parseUserRef,
 } from "../src/params.js";
-import { parseAuthStatus, XurlClient } from "../src/xurl-client.js";
+import { parseAuthStatus, parseXChatKeyStatus, XurlClient } from "../src/xurl-client.js";
 
 test("post references accept IDs and official URL variants", () => {
   assert.deepEqual(parsePostRef("1212092628029698048"), {
@@ -34,6 +35,14 @@ test("user and media references reject ambiguous input", () => {
   assert.throws(() => parseUserRef("not valid!"), /username/);
   assert.equal(parseMediaKey("16_1211797899316740096"), "16_1211797899316740096");
   assert.throws(() => parseMediaKey("../../token"), /media_key/);
+});
+
+test("X Chat conversation references accept official identifiers", () => {
+  assert.equal(parseChatRef("@XDevelopers"), "@XDevelopers");
+  assert.equal(parseChatRef("2244994945"), "2244994945");
+  assert.equal(parseChatRef("123-456"), "123-456");
+  assert.equal(parseChatRef("g2082242994149929240"), "g2082242994149929240");
+  assert.throws(() => parseChatRef("../token"), /conversation/);
 });
 
 test("query builder maps arrays to current comma-separated X parameters", () => {
@@ -120,6 +129,15 @@ test("not_found and unknown are distinguished", () => {
   assert.equal(unknown.code, "unknown");
 });
 
+test("missing local X Chat keys gets a stable error code", () => {
+  const missing = classifyXurlFailure({
+    exitCode: 1,
+    stdout: "",
+    stderr: "Error: no XChat keys found for user 10001 — bring your existing keys to this machine",
+  });
+  assert.equal(missing.code, "key_unavailable");
+});
+
 test("auth status parser returns users but never the client id", () => {
   const parsed = parseAuthStatus([
     "  default  [(no credentials)]",
@@ -149,5 +167,41 @@ test("auth status omits the user flag that xurl auth does not accept", async () 
   });
   await client.authStatus();
   assert.deepEqual(calls[0], ["--app", "xurl", "auth", "status"]);
+});
+
+test("X Chat status parser exposes key availability without secrets", () => {
+  const parsed = parseXChatKeyStatus([
+    "user: @example_user (10001)",
+    "local keys:   none — run 'xurl chat keys restore'",
+    "registered:   1 key(s) on account",
+  ].join("\n"));
+  assert.deepEqual(parsed, {
+    local_available: false,
+    local_none: true,
+    registered_count: 1,
+  });
+});
+
+test("X Chat read always passes no-mark-read and OAuth2 user context", async () => {
+  const calls = [];
+  const client = new XurlClient({
+    env: {
+      X_USE_APP: "xurl",
+      X_USE_USER: "example_user",
+    },
+    execFileImpl: async (_bin, args) => {
+      calls.push(args);
+      return { stdout: JSON.stringify([{ id: "event-1" }]), stderr: "" };
+    },
+  });
+  const body = await client.chatRead({ conversation: "123-456", maxResults: 5 });
+  assert.equal(body[0].id, "event-1");
+  assert.deepEqual(calls[0], [
+    "--app", "xurl",
+    "--username", "example_user",
+    "chat", "read", "123-456",
+    "--json", "--no-mark-read", "--auth", "oauth2",
+    "--max-results", "5",
+  ]);
 });
 

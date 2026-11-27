@@ -37,7 +37,7 @@ function parseResult(result) {
   return JSON.parse(text);
 }
 
-test("tools/list exposes exactly seven read-only tools", async () => {
+test("tools/list exposes exactly nine read-only tools", async () => {
   const result = await client.listTools();
   const names = result.tools.map((tool) => tool.name).sort();
   assert.deepEqual(names, [...EXPECTED_TOOL_NAMES].sort());
@@ -113,6 +113,30 @@ test("x_media surfaces forbidden with no fabricated data", async () => {
   assert.equal(JSON.stringify(body).includes("SHOULD_NOT_LEAK"), false);
 });
 
+test("x_chat_conversations returns the current inbox without changing read state", async () => {
+  const result = await client.callTool({
+    name: "x_chat_conversations",
+    arguments: { max_results: 5 },
+  });
+  const body = parseResult(result);
+  assert.equal(result.isError, false);
+  assert.equal(body.data[0].id, "123-456");
+  assert.equal(body.pagination.next_token, "fixture-chat-next");
+  assert.equal(body.meta.read_state_changed, false);
+});
+
+test("x_chat_read returns decrypted events and never marks the chat read", async () => {
+  const result = await client.callTool({
+    name: "x_chat_read",
+    arguments: { conversation: "123-456", max_results: 5 },
+  });
+  const body = parseResult(result);
+  assert.equal(result.isError, false);
+  assert.equal(body.data[0].id, "event-1");
+  assert.equal(body.data[0].message.text, "fixture chat message");
+  assert.equal(body.meta.read_state_changed, false);
+});
+
 test("not found is a structured tool error", async () => {
   const result = await client.callTool({
     name: "x_post",
@@ -129,6 +153,8 @@ test("x_status verifies auth and credits without leaking auth store ids", async 
   assert.equal(result.isError, false);
   assert.equal(body.data.authentication.authenticated, true);
   assert.equal(body.data.credits.available, true);
+  assert.equal(body.data.xchat.keys.local_none, true);
+  assert.equal(body.data.xchat.keys.registered_count, 1);
   assert.equal(body.data.auth_store.oauth2_users.includes("example_user"), true);
   assert.equal(JSON.stringify(body).includes("SHOULD_NOT_LEAK"), false);
 });

@@ -1,8 +1,8 @@
 {
   "name": "x-use",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Read-only X Use MCP backed by the official X API and local xurl authentication",
+  "description": "Read-only X and X Chat MCP backed by official xurl authentication",
   "license": "MIT",
   "author": "felixlark",
   "repository": {
